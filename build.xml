@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="gloader" default="all" basedir=".">
+
+	<!-- Build -->
+
+	<property file="build.properties" />
+	<property name="NAME" value="gloader" />
+	<property name="ROOT_DIR" value="." />
+	<property name="SRC_DIR" value="${ROOT_DIR}/src" />
+	<property name="TEMP_DIR" value="${ROOT_DIR}/temp" />
+	<property name="TEMP_PKG_DIR" value="${TEMP_DIR}/${NAME}/${VERSION}" />
+	<property name="DIST_DIR" value="${ROOT_DIR}/dist" />
+	<property name="DIST_PKG_DIR" value="${DIST_DIR}/${NAME}/${VERSION}" />
+	<property name="DIST_ZIP" value="${ROOT_DIR}/${NAME}-${VERSION}.zip" />
+	<property name="DIST_TGZ" value="${ROOT_DIR}/${NAME}-${VERSION}.tgz" />
+
+	<!-- Files -->
+
+	<property name="GLOADER" value="${SRC_DIR}/gloader.js" />
+	
+	<property name="HEADER" value="${SRC_DIR}/header.js" />
+
+	<filelist id="FILES_PROJECT"
+		dir="${ROOT_DIR}">
+		<file name="CONTRIBUTORS" />
+		<file name="LICENCE" />
+		<file name="README" />
+	</filelist>
+
+	<!-- Filterchains -->
+
+	<filterchain id="FILTER_HEADER">
+		<concatfilter prepend="${HEADER}" />
+	</filterchain>
+
+	<!-- Targets -->
+
+	<target name="clean">
+		<delete dir="${TEMP_DIR}" />
+		<delete dir="${DIST_DIR}" />
+		<delete file="${DIST_ZIP}" />
+		<delete file="${DIST_TGZ}" />
+	</target>
+
+	<target name="setup" depends="clean">
+		<mkdir dir="${TEMP_PKG_DIR}" />
+		<mkdir dir="${DIST_PKG_DIR}" />
+	</target>
+
+	<target name="temp" depends="setup">
+		<echo message="Creating temp files"/>
+		<copy todir="${TEMP_PKG_DIR}" file="${GLOADER}" />
+		<copy todir="${TEMP_DIR}">
+			<filelist refid="FILES_PROJECT" />
+		</copy>
+	</target>
+
+	<target name="debug" depends="temp">
+		<echo message="Creating debug files"/>
+		<copy todir="${DIST_DIR}">
+			<fileset dir="${TEMP_DIR}">
+				<include name="**/*.js" />
+			</fileset>
+			<filterchain refid="FILTER_HEADER" />
+			<globmapper from="*.js" to="*.debug.js" />
+		</copy>
+	</target>
+
+	<target name="min" depends="temp">
+		<echo message="Creating minified files"/>
+		<apply executable="java" parallel="false" failonerror="true">
+			<arg line="-jar"/>
+			<arg path="${YUI_JAR}"/>
+			<arg value="--preserve-semi" />
+			<srcfile/>
+			<fileset dir="${TEMP_DIR}" includes="**/*.js"/>
+			<redirector>
+				<outputmapper type="glob" from="*" to="${DIST_DIR}/*" />
+				<outputfilterchain refid="FILTER_HEADER" />
+			</redirector>
+		</apply>
+	</target>
+	
+	<target name="meta" depends="temp">
+		<echo message="Creating project files"/>
+		<copy todir="${DIST_DIR}">
+			<fileset dir="${TEMP_DIR}" includes="CONTRIBUTORS,LICENCE,README" />
+		</copy>
+	</target>
+
+	<target name="dist" depends="debug,min,meta">
+		<!--<delete dir="${TEMP_DIR}" />-->
+		<echo message="Creating dist files" />
+		<zip destfile="${DIST_ZIP}"
+			basedir="${DIST_DIR}" />
+		<tar destfile="${DIST_TGZ}" 
+			basedir="${DIST_DIR}" 
+			compression="gzip" />
+	</target>
+
+	<target name="all" depends="dist">
+		<echo message="" />
+		<echo message="*****************************************" />
+		<echo message="Gloader version ${VERSION} build complete" />
+		<echo message="*****************************************" />
+		<echo message="" />
+	</target>
+
+</project>

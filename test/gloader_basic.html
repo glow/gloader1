@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+        "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+	<title>Test Basic</title>
+	
+	<!-- handle cases where this test file is being run directly or within a frame -->
+	<script type="text/javascript">
+		if (typeof top.Test != "undefined") {
+			window.w = top;
+		}
+		else {
+			document.write('<script src="lib/Test.js" type="text/javascript"><'+'/script>');
+			window.w = window;
+		}
+	</script>
+	<script src="lib/carp.js" type="text/javascript"></script>
+	
+	
+	<script src="../src/gloader.js" type="text/javascript">
+		gloader.use(
+			"glow",
+			{
+				base: "mock/glow/{$version}/",
+				map: "mock/glow/map.js"
+			}
+		);
+		
+		gloader.settings.clear("override");
+		gloader.settings.clear("debug");
+	</script>
+
+	
+	<script type="text/javascript">
+		w.Test.ok(1, "Can call the ok method in the Test object. (gloader_basic.html)");
+		w.Test.ok(window.gloader, "The gloader object is defined. (gloader_basic.html)");
+		
+		// can gloader find it's own tag in a test filepath? Like: ["path/to/dir/", "gloader.js"]
+		var gloader_files = [
+			["/glow/scripts/", "gloader.js"],
+			["", "gloader.js"],
+			["./../scripts/", "gloader.js"],
+			["scripts_1/", "gloader.js"],
+			["scripts_2/JS/", "gloader.1.2.3.Rc-00x.js"],
+			["scripts_3/", "gloader.js?nocache=1234/2/3"],
+			["http://node1.bbcimg.co.uk/glow/", "gloader.0.1.0-rc1.js"]
+		];
+		
+		var not_gloader_file = "/gloader/foo.js?not=gloader";
+		
+		var file_fails = [];
+		for (var i = 0; i < gloader_files.length; i++) {
+			var filename = gloader_files[i][0]+gloader_files[i][1];
+			var filespec = gloader.util.getGloaderFile(filename);
+			if (!filespec || filespec.dir != gloader_files[i][0]) file_fails.push(filename);
+		}
+		w.Test.ok(file_fails.length == 0, "Gloader can find it's own directory ["+file_fails.join(", ")+"]. (gloader_basic.html)");
+	</script>
+	
+	<!-- loading a js library synchronously (via a simple script tag) -->
+	<script type="text/javascript">
+		w.Test.ok(gloader.load, "The gloader.load method is defined. (gloader_basic.html)");
+		
+		gloader.load(["glow", "1.0.0"]);
+	</script>
+	
+	<!-- result is a global variable that refers to the library -->
+	<script type="text/javascript">
+		w.Test.ok(window.glow, "The glow object is globally defined when loaded by gloader with no onload handler. (gloader_basic.html)");
+	</script>
+</head>
+<body>
+	<h1>Test Basic</h1>
+	
+	<p>
+		These tests check gloader's basic ability to begin running, like finding it's own script tag and executing the contents of that script tag correctly, loading a module globally.
+	</p>
+	
+	<h2 id="testPlan">5 tests</h2>
+	
+	<pre id="testConsole"></pre>
+		
+	<script type="text/javascript">
+		if (w == window) w.Test.setConsole(document.getElementById("testConsole"));
+	</script>
+</body>
+</html>

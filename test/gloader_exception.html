@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+        "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+	<title>Test Exception</title>
+	
+	<!-- handle cases where this test file is being run directly or within a frame -->
+	<script type="text/javascript">
+		if (typeof top.Test != "undefined") {
+			window.w = top;
+		}
+		else {
+			document.write('<script src="lib/Test.js" type="text/javascript"><'+'/script>');
+			window.w = window;
+		}
+	</script>
+	
+	<script src="../src/gloader.js" type="text/javascript">
+		gloader.use(
+			"glow",
+			{
+				base: "mock/glow/{$version}/",
+				map: "mock/glow/map.js"
+			}
+		);
+		
+		gloader.settings.clear("override");
+		gloader.settings.clear("debug");
+		
+		window.onerror = function() { /*ignored*/ } // prevent ie from showing error alerts?
+	</script>
+	
+	<!-- use gloader to load a module, this is ok, no errors here -->
+	<script type="text/javascript">
+		gloader.load(["glow", "1.0.0"]);
+	</script>
+	
+	<!-- result is a global variable that refers to the library -->
+	<script type="text/javascript">
+		w.Test.ok(window.glow, "The glow object is globally defined when loaded by gloader with no onload handler. (gloader_exception.html)");
+	</script>
+	
+	<!-- no exceptions thrown yet -->
+	<script type="text/javascript">
+		w.Test.ok((gloader._errors.length == 0), "Initially there are no errors detected in module loads. (gloader_exception.html)");
+	</script>
+	
+	<!-- gah! loading the glow library via a script tag (outside of gloader) -->
+	<script src="mock/glow/1.0.0/glow/glow.js" type="text/javascript">
+	</script>
+	
+	<!-- should have thrown one exception by now -->
+	<script type="text/javascript">
+		w.Test.ok((gloader._errors.length == 1), "When a module is loaded directly when gloader is defined it results in an error. (gloader_exception.html)");
+		w.Test.ok((gloader._errors.length && gloader._errors[0].indexOf("Unexpected module provided to gloader") > -1), "The error message describes the problem. (gloader_exception.html)");
+	</script>
+	
+	<script type="text/javascript">
+		gloader.load(["iDontExist", "1.0.0"]);
+	</script>
+	
+	<script type="text/javascript">
+		w.Test.ok((gloader._errors.length == 2), "When an unmapped module is loaded it results in an error. (gloader_exception.html)");
+		w.Test.ok((gloader._errors.length == 2 && gloader._errors[1].indexOf("missing a JavaScript filepath") > -1), "The error message describes the problem. (gloader_exception.html)");
+	</script>
+</head>
+<body>
+	<h1>Test Exception</h1>
+	
+	<p>
+		These tests check gloader's ability to throw an exception when a module is included by the user via a script tag when gloader is defined.
+	</p>
+	<p>
+		<i>This page is expected to produce 2 browser-level errors.</i>
+	</p>
+	
+	<h2 id="testPlan">6 tests</h2>
+	
+	<pre id="testConsole"></pre>
+		
+	<script type="text/javascript">
+		if (w == window) w.Test.setConsole(document.getElementById("testConsole"));
+	</script>
+</body>
+</html>

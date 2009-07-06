@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+        "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<title>gloader test harness</title>
+	
+	<style type="text/css" media="screen">
+		.testSummary {
+			border-top: 1px solid #999;
+		}
+	</style>
+	
+	<script type="text/javascript" src="lib/Test.js"></script>
+	
+	<script type="text/javascript">
+		function addFrame(src, name, callback) {
+			var iframe = document.createElement('IFRAME');
+			iframe.width = "1px";
+			iframe.height = "1px";
+			iframe.style.border = 'none';
+			if (name) {
+				iframe.name = name;
+			}
+			iframe.id = "iframe_" +new Date().getTime(); // prevent Safari from using old data.
+			iframe.src= src;
+			document.body.appendChild(iframe);			
+			
+			if (name && callback) {
+				iframe.onload = (function(frame) {
+					return function() { callback(frame); };
+				})(frames[name]);
+			}
+		}
+	</script>
+</head>
+<body>
+	<pre id="testConsole"></pre>
+	
+	<script type="text/javascript">
+		Test.setConsole(document.getElementById("testConsole"));
+		
+		Test.plan(48);
+		
+		/* 2 */ addFrame("gloader_settings.html");
+ 		/* 3 */ addFrame("gloader_async_async.html");
+ 		/* 3 */ addFrame("gloader_async_sync.html");
+ 		/* 5 */ addFrame("gloader_basic.html");
+		/* 5 */ addFrame("gloader_css.html");
+ 		/* 2 */ addFrame("gloader_default.html");
+ 		/* 6 */ addFrame("gloader_exception.html");
+ 		/* 3 */ addFrame("gloader_foreign.html");
+ 		/* 9 */ addFrame("gloader_map.html");
+ 		/* 3 */ addFrame("gloader_sync_async.html");
+ 		/* 2 */ addFrame("gloader_sync_sync.html");
+ 		/* 4 */ addFrame("gloader_versions.html");
+	</script>
+	
+</body>
+</html>

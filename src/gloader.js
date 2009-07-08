@@ -793,13 +793,14 @@
 })();
 
 // using Resig's "degrading script" pattern.
-// first script tag on the page with src=gloader.js wins.
+// last script tag on the page with src=gloader.js wins.
 (function() {
 	var scripts = document.getElementsByTagName("script");
 
-	for (var i = 0; i < scripts.length; i++) {
+	for (var i = scripts.length-1; i >= 0; i--) {
 		// does this script tag look like it is pointing to gloader?
 		var src = scripts[i].getAttribute("src");
+
 		var filespec = gloader.util.getGloaderFile(src);
 		
 		if (typeof filespec != "undefined") {

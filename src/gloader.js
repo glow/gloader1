@@ -410,7 +410,7 @@
 			gloader._modules[m.id].async = async;
 			var cssSrc = gloader.map.css[m.id];
 			
-			if (force || (cssSrc && !gloader._fetched[cssSrc])) { /*debug*///console.log("injecting css file: "+cssSrc);
+			if (cssSrc && (force || !gloader._fetched[cssSrc])) { /*debug*///console.log("injecting css file: "+cssSrc);
 				gloader._fetched[cssSrc] = 1;
 
 				if (document) {

@@ -31,7 +31,7 @@
 	</script>
 
 	<script type="text/javascript">
-		gloader.load(["glow", "1.0.0"], {
+		gloader.load(["glow", "1.0.0", "glow.widgets.Panel"], {
 			async: true,
 			onload: function(glow) {
 				w.Test.ok((glow.VERSION == "1.0.0"), "The asynchronously loaded glow object is defined. (gloader_async_sync.html)");
@@ -44,7 +44,7 @@
 	</script>
 	
 	<script type="text/javascript">
-		gloader.load(["glow", "1.0.0"], {async: false});
+		gloader.load(["glow", "1.0.0", "glow.widgets.Panel"]);
 	</script>
 	
 	<script type="text/javascript">

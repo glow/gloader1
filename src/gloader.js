@@ -406,12 +406,12 @@
 		},
 
 		/** Inject a module file into this web page. */
-		fetch: function(m, async, force) { /*debug*///console.log("gloader.fetch("+m.id+", "+async+")");
+		fetch: function(m, async, force) { /*debug*///console.log("gloader.fetch("+m.id+", "+async+", "+force+")");
 			gloader._modules[m.id].async = async;
 			var cssSrc = gloader.map.css[m.id];
 			
 			if (cssSrc && (force || !gloader._fetched[cssSrc])) { /*debug*///console.log("injecting css file: "+cssSrc);
-				gloader._fetched[cssSrc] = 1;
+				gloader._fetched[cssSrc] = {}; // a truthy object to possibly hold some details about the way we fetched the file
 
 				if (document) {
 					var headElement;
@@ -421,12 +421,12 @@
 							link.href = cssSrc;
 							link.rel = 'stylesheet';
 							link.type = 'text/css';
-							link.className = 'gloaded';
+							link.className = 'gloaded async';
 							headElement.appendChild(link);
 						}
 					}
 					else	{
-						document.write('<link rel="stylesheet" type="text\/css" href="'+cssSrc+'">');
+						document.write('<link rel="stylesheet" type="text\/css" href="'+cssSrc+'" class="gloaded sync">');
 					}
 				}
 			}
@@ -445,21 +445,30 @@
 				throw new Error(msg);
 			}
 			
-			if (force || (jsSrc && !gloader._fetched[jsSrc])) { /*debug*///console.log("fetching js file: "+jsSrc);
-				gloader._fetched[jsSrc] = 1;
-				
-				// given the source file, we should expect all the modules in that source file
-				gloader.expect(jsSrc);
-
-				if (async) { /*debug*///console.log("inject: "+jsSrc);
-					var headElement = document.getElementsByTagName('head')[0];
-					var scriptElement = document.createElement('script');
-					scriptElement.type = 'text/javascript';
-					scriptElement.src = jsSrc;
-					headElement.appendChild(scriptElement);
-				}
-				else { /*debug*///console.log("write: "+jsSrc);
-					document.write('<script type="text/javascript" class="gloaded" src="'+jsSrc+'"></script>\n');
+			// if there is a source file
+			if (jsSrc) {
+				// and we've never fetched that file
+				// or we've have fetched it asynchronously and it's not yet arroved and now we its loading synchrounously and we've not already loaded it synchronously
+				// then we gotta go get it
+				if (!gloader._fetched[jsSrc] || (force && !gloader._fetched[jsSrc].sync)) { /*debug*///console.log("fetching js file: "+jsSrc);
+					gloader._fetched[jsSrc] =  {}; // a truthy object to possibly hold some details about the way we fetched the file
+					
+					// given the source file, we should expect all the modules in that source file
+					gloader.expect(jsSrc);
+	
+					if (async) { /*debug*///console.log("inject: "+jsSrc);
+						gloader._fetched[jsSrc].async = true;
+						var headElement = document.getElementsByTagName('head')[0];
+						var scriptElement = document.createElement('script');
+						scriptElement.type = 'text/javascript';
+						scriptElement.src = jsSrc;
+						scriptElement.className = "gloaded async";
+						headElement.appendChild(scriptElement);
+					}
+					else { /*debug*///console.log("write: "+jsSrc);
+						gloader._fetched[jsSrc].sync = true;
+						document.write('<script type="text/javascript" src="'+jsSrc+'" class="gloaded sync"></script>\n');
+					}
 				}
 			}
 		},

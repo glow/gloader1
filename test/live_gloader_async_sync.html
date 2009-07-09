@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+        "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+	<title>Live Test Async Sync</title>
+	
+	<!-- handle cases where this test file is being run directly or within a frame -->
+	<script type="text/javascript">
+		if (typeof top.Test != "undefined") {
+			window.w = top;
+		}
+		else {
+			document.write('<script src="lib/Test.js" type="text/javascript"><'+'/script>');
+			window.w = window;
+		}
+	</script>
+	
+	<script type="text/javascript" src="http://mc-s001955.national.core.bbc.co.uk/pendrive/projects/gloader/src/gloader.js">
+		gloader.use(
+			"glow", {
+				$base: "http://node1.bbcimg.co.uk/glow/glow/{$version}/",
+				map: "http://node1.bbcimg.co.uk/glow/glow/map.1.5.1.js"
+			}
+		);
+
+		gloader.settings.clear("override");
+		gloader.settings.clear("debug");
+	</script>
+
+	<script type="text/javascript">
+		gloader.load(
+			["glow", "1", "glow.dom"]
+			,
+			{
+				async: true,
+				onload: function(glow) {
+					w.Test.ok((typeof glow != "undefined"), "The asynchronously loaded glow object is defined. (live_gloader_async_sync.html)");
+				}
+			}
+		);
+	</script>
+	
+	<script type="text/javascript">
+		gloader.load(["glow", "1"]);
+	</script>
+	
+	<script type="text/javascript">
+		w.Test.ok((typeof window.glow != "undefined"), "The synchronously loaded glow object is defined. (live_gloader_async_sync.html)");
+	</script>
+	
+	<!-- at this point there should be AT MOST 2 script tags for core: one asyn, and (possibly) one sync -->
+	<script type="text/javascript">
+		var scriptsTags = document.getElementsByTagName("script");
+		
+		var countAsync = 0;
+		var countSync  = 0;
+		
+		for (var i = 0; i < scriptsTags.length; i++) {
+			var src = scriptsTags[i].getAttribute("src");
+			if (src && src.indexOf("core.js") > -1) {
+				if ((scriptsTags[i].className || "").indexOf(" async") > -1) countAsync++;
+				if ((scriptsTags[i].className || "").indexOf(" sync") > -1)  countSync++;
+			}
+		}
+		
+		w.Test.ok((countAsync + countSync > 0) && (countAsync + countSync <= 2), "The number of script tags is 1 or 2 ["+countAsync+" async + "+countSync+" sync]. (live_gloader_async_sync.html)");
+	</script>
+</head>
+<body>
+	<h1>Live Test Asyc Sync</h1>
+	
+	<p>
+		These tests check gloader's ability to load a module asynchronously and then load the same module synchronously, and maintain separate closures for each.
+	</p>
+	
+	<h2 id="testPlan">3 tests</h2>
+	
+	<pre id="testConsole"></pre>
+		
+	<script type="text/javascript">
+		if (w == window) w.Test.setConsole(document.getElementById("testConsole"));
+	</script>
+</body>
+</html>

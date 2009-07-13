@@ -202,7 +202,6 @@
 
 				// if the version is not fully specified
 				if (parts.length < 3) {
-
 					// if the version is in the format maj<int>[.min<int>]
 					if (
 						parts[0] == parseInt(parts[0])
@@ -260,7 +259,6 @@
 
 		/** Give values to states that gloader can refer to. */
 		settings: {
-
 			ns: "bbc.glow.gloader",
 
 			get: function(name) { /*debug*///console.log("get("+name+")");
@@ -378,21 +376,21 @@
 		},
 
 		/** We need some module files to complete a request. */
-		request: function(mIds, async) { /*debug*///console.log("gloader.request(["+mIds.join(",")+"], "+async+")");
+		request: function(mIds, async) { /*debug*///console.log("gloader.request(["+mIds.join(", ")+"], "+async+")");
 			for (var i = 0; i < mIds.length; i++) {
-				if (gloader._extras[mIds[i]]) { // module was provided before it was requested
-					gloader._modules[mIds[i]] = new gloader.Module(mIds[i]);
-					var extra = gloader._extras[mIds[i]];
-					delete gloader._extras[mIds[i]];
+				var m = mIds[i];
+				
+				if (gloader._extras[m]) { // module was provided before it was requested
+					gloader._modules[m] = new gloader.Module(m);
+					var extra = gloader._extras[m];
+					delete gloader._extras[m];
 					gloader.provide(extra);
 				}
-				else if (!gloader._modules[mIds[i]]) {
-					gloader._modules[mIds[i]] = new gloader.Module(mIds[i]);
-					gloader._modules[mIds[i]].status = gloader.Module.REQUESTED;
+				else if (!gloader._modules[m]) {
+					gloader._modules[m] = new gloader.Module(m);
+					gloader._modules[m].status = gloader.Module.REQUESTED;
 				}
-			}
-
-			for (var m in gloader._modules) {
+				
 				if (gloader._modules[m].status < gloader.Module.IMPLEMENTED || gloader._modules[m].css) {
 					gloader._modules[m].css = null;
 
@@ -400,18 +398,23 @@
 					// yet arrived, but now is requested again synchronously,
 					// in this case we must force the fetch to happen twice
 					var force = (!async && gloader._modules[m].async == true && gloader._modules[m].status >= gloader.Module.FETCHED);
+					
 					gloader.fetch(gloader._modules[m], async, force);
 				}
 			}
 		},
 
-		/** Inject a module file into this web page. */
+		/** Inject a module file into this web page.
+			@param {gloader.Module} m The module which is being loaded.
+			@param {Boolean} async When true the modules file is loaded asynchronously
+			@param {boolean} force Ignore the usual checks that prevent the same file being loaded twice.
+		*/
 		fetch: function(m, async, force) { /*debug*///console.log("gloader.fetch("+m.id+", "+async+", "+force+")");
 			gloader._modules[m.id].async = async;
 			var cssSrc = gloader.map.css[m.id];
 			
 			if (cssSrc && (force || !gloader._fetched[cssSrc])) { /*debug*///console.log("injecting css file: "+cssSrc);
-				gloader._fetched[cssSrc] = {}; // a truthy object to possibly hold some details about the way we fetched the file
+				gloader._fetched[cssSrc] = {}; // may hold some details about the way we fetched the file
 
 				if (document) {
 					var headElement;
@@ -431,9 +434,6 @@
 				}
 			}
 
-			if (!force && gloader._modules[m.id].status >= gloader.Module.FETCHED) return false;
-			gloader._modules[m.id].status = gloader.Module.FETCHED;
-			
 			var jsSrc = gloader.map.js[m.id];
 			
 			if (!jsSrc) {
@@ -445,19 +445,23 @@
 				throw new Error(msg);
 			}
 			
-			// if there is a source file
 			if (jsSrc) {
-				// and we've never fetched that file
-				// or we've have fetched it asynchronously and it's not yet arroved and now we its loading synchrounously and we've not already loaded it synchronously
-				// then we gotta go get it
-				if (!gloader._fetched[jsSrc] || (force && !gloader._fetched[jsSrc].sync)) { /*debug*///console.log("fetching js file: "+jsSrc);
+				// if we've never fetched this file
+				// or we've only fetched it asynchronously but it's not yet arrived and now its wanted synchronously
+				// then we gotta go add it again because the user expects to be able to use that code immediately
+				if (
+					!gloader._fetched[jsSrc]
+					|| (!gloader._fetched[jsSrc].sync && force)
+				) { /*debug*///console.log("fetching js file: "+jsSrc);
 					gloader._fetched[jsSrc] =  {}; // a truthy object to possibly hold some details about the way we fetched the file
 					
-					// given the source file, we should expect all the modules in that source file
+					// if we're loading a source file, we will expect all the modules in that source file
 					gloader.expect(jsSrc);
 	
 					if (async) { /*debug*///console.log("inject: "+jsSrc);
 						gloader._fetched[jsSrc].async = true;
+						
+						// inserting a script node causes the file to load asynchronously
 						var headElement = document.getElementsByTagName('head')[0];
 						var scriptElement = document.createElement('script');
 						scriptElement.type = 'text/javascript';
@@ -467,16 +471,26 @@
 					}
 					else { /*debug*///console.log("write: "+jsSrc);
 						gloader._fetched[jsSrc].sync = true;
+						
+						// doc writing a script tag causes the file to load synchronously
 						document.write('<script type="text/javascript" src="'+jsSrc+'" class="gloaded sync"></script>\n');
 					}
 				}
+				else {
+					/*debug*///console.log("SKIP fetching js file: "+jsSrc);
+				}
+				
+				if (gloader._modules[m.id].status < gloader.Module.FETCHED) {
+					gloader._modules[m.id].status = gloader.Module.FETCHED;
+				}
 			}
 		},
+		// @type Object[] to keep track of which files have already been fetched
 		_fetched: {
 		},
 
 		/** A module file has arrived (been provided).
-			@param {object} m The module definition from the remote source file.
+			@param {Object} m The module definition from the remote source file.
 		 */
 		provide: function(m) { /*debug*///console.log("gloader.provide("+m.library[0]+"/"+m.library[1]+"/"+m.name+")");
 			m.id = m.library[0]+"/"+m.library[1]+"/"+m.name; // modifying the module definition from the remote file
@@ -492,27 +506,38 @@
 			gloader._modules[m.id].builder.args = [];
 
 			var d = gloader._modules[m.id].depends = (m.depends)? gloader.toIds(m.depends) : [];
+
 			if (d.length > 0) {
 				var includes = [];
 				for (var i = 0; i < d.length; i++) {
 					var requests = gloader.getRequests(m);
-					var include = {async: true, ids: []};
+					var include = { async: true, ids: [] };
+					
 					for (var j = 0; j < requests.length; j++) {
 						requests[j].include(d[i]);
 						include.ids.push(d[i]);
-						if (requests[j].async === false) {	// are there any requests for this module that are sync?
-							include.async = false;
-						}
+						
+						// dependencies inherit the synchronicity of their base module, so if we should
+						// reload an async module, using a sync method, we want all the dependnecies
+						// to now also load synchronously too; this protects us from having
+						// the same dependency chains loading sync and then again async
+ 						if (requests[j].async === false) {	// is the request for this module sync?
+ 							include.async = false; // every include should be sync too
+ 						}
 					}
 					includes.push(include);
-
+					
+					// libraries declared as dependencies will become arguments to the builder
+					// note that this assumes the name of a library is distinct because it has no dot
 					if (d[i].match(/\/[^.]+$/)) {
 						gloader._modules[m.id].builder.args.push(d[i]);
 					}
 				}
 
 				for (var i = 0; i < includes.length; i++) {
-					gloader.request(includes[i].ids, includes[i].async);
+					if (includes[i].ids.length) {
+						gloader.request(includes[i].ids, includes[i].async);
+					}
 				}
 			}
 			else { // module is provided and has no depends
@@ -525,12 +550,12 @@
 		
 		// check: are we expecting this module? warn user if they are including
 		// a module via an inline script tag while gloader is defined
-		_greet: function(modId) {
-			if (gloader._expects[modId] > 0) { // were we expecting this module or not
-				gloader._expects[modId]--;
+		_greet: function(mId) {
+			if (gloader._expects[mId] > 0) { // were we expecting this module or not?
+				gloader._expects[mId]--;
 			}
 			else {
-				var msg = "Unexpected module provided to gloader: "+modId;
+				var msg = "Unexpected module provided to gloader: "+mId;
 				gloader._errors.push(msg);
 				throw(msg);
 			}
@@ -557,20 +582,20 @@
 		},
 
 		/** All dependents for a given module are available now. We can implement the module. */
-		implement: function(module) { /*debug*///console.log("gloader.implement("+module.id+"), module.status is "+gloader._modules[module.id].status);
-			if (gloader._modules[module.id].status != gloader.Module.PROVIDED) return;
-			gloader._modules[module.id].status = gloader.Module.IMPLEMENTED;
-
-			for (var i = 0; i < gloader._modules[module.id].builder.args.length; i++) {
-				var argName = gloader._modules[module.id].builder.args[i];
-				gloader._modules[module.id].builder.args[i] = gloader._modules[module.builder.args[i]].implementation;
-				gloader._modules[module.id].builder.args[i].name = argName;
+		implement: function(m) { /*debug*///console.log("gloader.implement("+m.id+"), m.status is "+gloader._modules[m.id].status);
+			if (gloader._modules[m.id].status != gloader.Module.PROVIDED) return;
+			
+			for (var i = 0; i < gloader._modules[m.id].builder.args.length; i++) {
+				var argName = gloader._modules[m.id].builder.args[i];
+				gloader._modules[m.id].builder.args[i] = gloader._modules[m.builder.args[i]].implementation;
+				gloader._modules[m.id].builder.args[i].name = argName;
 			}
 
-			gloader._modules[module.id].implementation = gloader._modules[module.id].builder.apply(null, gloader._modules[module.id].builder.args);
+			gloader._modules[m.id].implementation = gloader._modules[m.id].builder.apply(null, gloader._modules[m.id].builder.args);
+			gloader._modules[m.id].status = gloader.Module.IMPLEMENTED;
 
 			for (var i = 0; i < gloader._requests.length; i++) {
-				gloader._requests[i].release(module.id);
+				gloader._requests[i].release(m.id);
 			}
 		},
 

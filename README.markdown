@@ -107,6 +107,8 @@ The `depends` option is an array of arrays: the inner arrays define the dependen
         ['myOtherLibrary', '1.2.0', 'myOtherLibrary.myModule']
     ]
 
+Be warned that it is possible to configure the dependencies in set of modules such that none can ever be satisfied. This would happen if you were to create a circular dependency. For example if module A depends on module B while B also depends on A, it would be impossible for gloader to meet either requirement. It is left to the library designer to prevent this scenario and some planning in this regard is strongly recommended. Notice to that it is always implied that a module depends on its own library, so, to prevent a circular dependency, you should never make a library depend on one of its own modules (a well-designed library module should not depend on any module).
+
 The File Map
 ----
 
@@ -287,7 +289,7 @@ This will initialise the global `gloader` object and will tell it to read the ma
 Loading Modules
 ----
 
-Once you have initilised the `gloader` object, you can use it to load modules. To load just the library module, use a syntax like this:
+Once you have initialised the `gloader` object, you can use it to load modules. To load just the library module, use a syntax like this:
 
     <script src="gloader.js" type="text/javascript">
         gloader.load(["myLibrary", "1.3.0"]);
@@ -315,7 +317,7 @@ When Things Go Wrong
 
 Even the best laid plans can sometimes suffer problems. If your module isn't appearing, even though you asked Gloader to load it, there are a few things you can try. Firstly, it isn't possible for Gloader to detect a 404 "Not Found" error from your server. In cases where a module is requested but it never arrives, Gloader will patiently wait forever, or at least long enough for your browser to give up. In these cases a look at FireBug's "Network" tab will tell you if one of your files is cannot be found.
 
-If you try to load a module which is not listed in your map file (for exampl if you misspelled the name), this is obviously a mistake that Gloader can detect immediately and you will see an error message like: 'The gloader map is missing a JavaScript filepath for the module: mispeld/1.0.0/myModule". Maps included are: myLibrary/map.js'. This tells you the path to the map from which Gloader is working, and the libraryname, version and module name which can't be found in that map.
+If you try to load a module which is not listed in your map file (for example if you misspelled the name), this is obviously a mistake that Gloader can detect immediately and you will see an error message like: 'The gloader map is missing a JavaScript filepath for the module: mispeld/1.0.0/myModule. Maps included are: myLibrary/map.js'. This tells you the path to the map from which Gloader is working, and the libraryname, version and module name which can't be found in that map.
 
 In some cases it might be useful to tell Gloader that it should not wait forever for modules which are not available from the server. You can provide a "onTimeout" option which is a callback function that will be executed whenever a requested module does not arrive in less than 20 seconds. If you think 20 seconds is too long to wait, you can also provide a "timeout" option, which is the number of milliseconds to wait before running the callback.
 
@@ -344,4 +346,4 @@ You may wish to write your modules so that they can be used with or without Gloa
 
 By using this pattern you allow your users to include your module via `gloader.load()` or optionally via a simple script tag. Of course, without Gloader's help it is left up to the user to manage loading of dependencies in the right order. for example, here we are assuming that a global object named `myLibrary` is defined already.
 
-There is a special error case that is worth mentioning here, and it arises when you have the `gloader` object defined in your webpage but try to include a module from your library by using a script tag anyway. In that case Gloader will still "receive" the module anyway, whether you intended it to or not (because `gloader` will be defined, the logic says it will get it's `module()` method called). In this case Gloader will notify you of the problem by throwing an error with a message that says so. the only remedy for this is to avoid the situation in teh first place by only loading modules via script tags before (or as an alternative to) you include Gloader on your page. 
+There is a special error case that is worth mentioning here, and it arises when you have the `gloader` object defined in your webpage but try to include a module from your library by using a script tag anyway. In that case Gloader will still "receive" the module anyway, whether you intended it to or not (because `gloader` will be defined, the logic says it will get it's `module()` method called). In this case Gloader will notify you of the problem by throwing an error with a message that says so. the only remedy for this is to avoid the situation in the first place by only loading modules via script tags before (or as an alternative to) you include Gloader on your page. 

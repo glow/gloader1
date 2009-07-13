@@ -31,6 +31,11 @@
 	</script>
 
 	<script type="text/javascript">
+		// make the asynchronous call go slow
+		// we want to force the case where the second synchronous load
+		// completes before the first synchronous load
+		window.withDelay = true;
+		
 		gloader.load(["glow", "1.0.0", "glow.widgets.Panel"], {
 			async: true,
 			onload: function(glow) {
@@ -44,6 +49,7 @@
 	</script>
 	
 	<script type="text/javascript">
+		window.withDelay = false;
 		gloader.load(["glow", "1.0.0", "glow.widgets.Panel"]);
 	</script>
 	

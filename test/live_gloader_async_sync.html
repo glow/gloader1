@@ -25,11 +25,12 @@
 			}
 		);
 
-		gloader.settings.clear("override");
-		gloader.settings.clear("debug");
+		//gloader.settings.clear("override");
+		//gloader.settings.clear("debug");
 	</script>
 
 	<script type="text/javascript">
+		console.log("loading [glow, 1, glow.dom]");
 		gloader.load(
 			["glow", "1", "glow.dom"]
 			,
@@ -43,6 +44,7 @@
 	</script>
 	
 	<script type="text/javascript">
+		console.log("loading [glow, 1]");
 		gloader.load(["glow", "1"]);
 	</script>
 	

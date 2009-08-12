@@ -786,7 +786,9 @@
 				arguments.callee.fired = true;
 				if (gloader) gloader.isReady = true;
 			};
-			d.addEventListener("DOMContentLoaded", callback, false);
+			if (d.addEventListener) {
+				d.addEventListener("DOMContentLoaded", callback, false);
+			}
 			var oldOnload = window.onload;
 			window.onload = function () {
 				if (oldOnload) { oldOnload(); }

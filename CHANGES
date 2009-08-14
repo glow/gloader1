@@ -1,8 +1,8 @@
 Gloader Changelog
 
-0.1.2:
+0.1.2
 
-* Updated domReady code to fix a bug in some browsers (eg PS3 NetFront)
+* Updated domReady code to fix a bug in some browsers (e.g. PS3 NetFront)
 
 0.1.1
 

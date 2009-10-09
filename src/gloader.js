@@ -394,12 +394,7 @@
 				if (gloader._modules[m].status < gloader.Module.IMPLEMENTED || gloader._modules[m].css) {
 					gloader._modules[m].css = null;
 
-					// the module was already fetched (asynchronously) and hasn't
-					// yet arrived, but now is requested again synchronously,
-					// in this case we must force the fetch to happen twice
-					var force = (!async && gloader._modules[m].async == true && gloader._modules[m].status >= gloader.Module.FETCHED);
-					
-					gloader.fetch(gloader._modules[m], async, force);
+					gloader.fetch(gloader._modules[m], async);
 				}
 			}
 		},
@@ -407,11 +402,23 @@
 		/** Inject a module file into this web page.
 			@param {gloader.Module} m The module which is being loaded.
 			@param {Boolean} async When true the modules file is loaded asynchronously
-			@param {boolean} force Ignore the usual checks that prevent the same file being loaded twice.
-		*/
-		fetch: function(m, async, force) { /*debug*///console.log("gloader.fetch("+m.id+", "+async+", "+force+")");
+		 */
+		fetch: function(m, async) { /*debug*///console.log("gloader.fetch("+m.id+", "+async+", "+force+")");
+			var cssSrc = gloader.map.css[m.id],
+				jsSrc  = gloader.map.js[m.id];
+			
 			gloader._modules[m.id].async = async;
-			var cssSrc = gloader.map.css[m.id];
+			
+			// override usual checks that prevent multiple downloads?
+			var force = (
+				!async // this fetch is sync
+				&&
+				gloader._fetched[jsSrc] // and was previously fetched
+				&&
+				gloader._fetched[jsSrc].async // and previous fetch was async
+				&&
+				gloader._modules[m.id].status < gloader.Module.IMPLEMENTED // and it's not yet available
+			);
 			
 			if (cssSrc && (force || !gloader._fetched[cssSrc])) { /*debug*///console.log("injecting css file: "+cssSrc);
 				gloader._fetched[cssSrc] = {}; // may hold some details about the way we fetched the file
@@ -433,9 +440,7 @@
 					}
 				}
 			}
-
-			var jsSrc = gloader.map.js[m.id];
-			
+		
 			if (!jsSrc) {
 				var msg = "The gloader map is missing a JavaScript filepath for the module: "+m.id;
 				var maps = [];
@@ -446,13 +451,7 @@
 			}
 			
 			if (jsSrc) {
-				// if we've never fetched this file
-				// or we've only fetched it asynchronously but it's not yet arrived and now its wanted synchronously
-				// then we gotta go add it again because the user expects to be able to use that code immediately
-				if (
-					!gloader._fetched[jsSrc]
-					|| (!gloader._fetched[jsSrc].sync && force)
-				) { /*debug*///console.log("fetching js file: "+jsSrc);
+				if (force || !gloader._fetched[jsSrc]) { /*debug*///console.log("fetching js file: "+jsSrc);
 					gloader._fetched[jsSrc] =  {}; // a truthy object to possibly hold some details about the way we fetched the file
 					
 					// if we're loading a source file, we will expect all the modules in that source file

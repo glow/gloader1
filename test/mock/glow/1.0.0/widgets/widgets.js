@@ -7,6 +7,19 @@ gloader.module({
 	}
 });
 
+gloader.module({
+	name: 'glow.widgets.Mask',
+	library: ['glow', '1.0.0'],
+	depends: [
+		['glow', '1.0.0', 'glow.widgets']
+	],
+	
+	builder: function(glow) {
+		glow.widgets.Mask = function() {
+		};
+	}
+});
+
 function createModule() {
 	gloader.module({
 		name: 'glow.widgets.Panel',

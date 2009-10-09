@@ -1,0 +1,14 @@
+Gloader Changelog
+
+0.1.2
+
+* Updated domReady code to fix a bug in some browsers (e.g. PS3 NetFront)
+
+0.1.1
+
+* Fixed bug that caused Safari to add too many script tags for modules that were previously loaded async but then were loaded sync, which sometimes caused browser to hang.
+* Fixed bug that caused undefined css files to be added to the page.
+
+0.1.0
+
+* First release

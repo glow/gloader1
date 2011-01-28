@@ -26,6 +26,13 @@
 					};
 				}
 				return undefined; // the filepath is not possibly this file
+			},
+			/** Read, process and return the content of the gloader script tag*/
+			getScriptContent: function(script){
+			    // is the content of this script node non-empty? if so then trim and whitespace,
+			    // remove the comment tags (/**/) if any  and eval the contents
+			    return script.innerHTML.replace(/^\s+|\s+$/g,'').replace(/^(\/\*)|(\*\/)$/g,'');
+			
 			}
 		},
 
@@ -841,8 +848,10 @@
 		if (typeof filespec != "undefined") {
 			gloader._baseDir = filespec.dir;
 			
-			// is the content of this script node non-empty? is so then eval the contents
-			var gloaderScript = scripts[i].innerHTML;
+			// is the content of this script node non-empty? if so then trim and whitespace,
+			// remove the comment tags (/**/) if any  and eval the contents
+			var gloaderScript = gloader.util.getScriptContent(scripts[i]);
+			
 			if (/\S/.test(gloaderScript)) {
 				eval(gloaderScript);
 			}

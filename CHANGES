@@ -1,5 +1,9 @@
 Gloader Changelog
 
+0.1.3
+
+* Added the ability the evaluate script tag content that has been commented (in the form /**/) in order to pass HTML5 validation
+
 0.1.2
 
 * Updated domReady code to fix a bug in some browsers (e.g. PS3 NetFront)

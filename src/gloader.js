@@ -505,6 +505,10 @@
 
 			gloader._modules[m.id].status = gloader.Module.PROVIDED;
 
+			if (gloader._modules[m.id].status >= gloader.Module.PROVIDED) {
+				return;
+			}
+
 			gloader._modules[m.id].builder = m.builder;
 			gloader._modules[m.id].builder.args = [];
 

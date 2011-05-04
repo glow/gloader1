@@ -1,5 +1,9 @@
 Gloader Changelog
 
+0.1.6
+
+* Use settings from global gloader array where defined.
+
 0.1.5
 
 * Use version number not being used by mistake.

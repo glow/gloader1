@@ -2,8 +2,14 @@
 	A module loader for Glow.
  */
 (function(){
+    if (window.gloader && typeof window.gloader.unshift === 'function') {
+        var settings = window.gloader;
+        window.gloader = false;
+    }
 	if (window.gloader) return;
 	
+    console.log('settings', settings);
+
 	window.gloader = {
 
 		_requests: [], // {gloader.Request}
@@ -825,34 +831,41 @@
 		);
 		gloader.map.include(properties.$map);
 	};
-})();
 
-// using Resig's "degrading script" pattern.
-// last script tag on the page with src=gloader.js wins.
-(function() {
-	var scripts = document.getElementsByTagName("script");
+    // using Resig's "degrading script" pattern.
+    // last script tag on the page with src=gloader.js wins.
+    (function() {
+        var scripts = document.getElementsByTagName("script");
 
-	for (var i = scripts.length-1; i >= 0; i--) {
-		// does this script tag look like it is pointing to gloader?
-		var src = scripts[i].getAttribute("src");
+        for (var i = scripts.length-1; i >= 0; i--) {
+            // does this script tag look like it is pointing to gloader?
+            var src = scripts[i].getAttribute("src");
 
-		var filespec = gloader.util.getGloaderFile(src);
-		
-		if (typeof filespec != "undefined") {
-			gloader._baseDir = filespec.dir;
-			
-			// is the content of this script node non-empty? is so then eval the contents
-			var gloaderScript = scripts[i].innerHTML;
-			if (/\S/.test(gloaderScript)) {
-				eval(gloaderScript);
-			}
-			
-			// the user should have configured gloader by now, if not we configure it ourselves with defaults
-			var mapped = false;
-			for (var p in gloader.map._include) { mapped = true; continue; }
-			if (!mapped) { gloader.use(); } // no maps mean the configuration didn't happen?
-			
-			break;
-		}
-	}
+            var filespec = gloader.util.getGloaderFile(src);
+            
+            if (typeof filespec != "undefined") {
+                gloader._baseDir = filespec.dir;
+                
+                // is the content of this script node non-empty? is so then eval the contents
+                var gloaderScript = scripts[i].innerHTML;
+                if (/\S/.test(gloaderScript)) {
+                    eval(gloaderScript);
+                }
+                
+                // the user should have configured gloader by now, if not we configure it ourselves with defaults
+                var mapped = false;
+                for (var p in gloader.map._include) { mapped = true; continue; }
+                if (!mapped) {  // no maps mean the configuration didn't happen?
+                    if (settings) {
+                        gloader.use.apply(gloader, settings);
+                    }
+                    else {
+                        gloader.use();
+                    }
+                }
+                
+                break;
+            }
+        }
+    })();
 })();

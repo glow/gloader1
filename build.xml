@@ -24,7 +24,7 @@
 		dir="${ROOT_DIR}">
 		<file name="CONTRIBUTORS" />
 		<file name="LICENCE" />
-		<file name="README" />
+		<file name="README.markdown" />
 	</filelist>
 
 	<!-- Filterchains -->

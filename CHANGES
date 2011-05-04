@@ -1,5 +1,13 @@
 Gloader Changelog
 
+0.1.4
+
+* Use settings from global gloader array where defined.
+
+0.1.3
+
+* Fixed bug that affected loading two modules from the same file, one async then the other sync.
+
 0.1.2
 
 * Updated domReady code to fix a bug in some browsers (e.g. PS3 NetFront)

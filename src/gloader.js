@@ -8,8 +8,6 @@
     }
 	if (window.gloader) return;
 	
-    console.log('settings', settings);
-
 	window.gloader = {
 
 		_requests: [], // {gloader.Request}
